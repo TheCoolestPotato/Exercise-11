@@ -1,3 +1,14 @@
+---
+title: "Exercise 11"
+format: html
+editor: visual
+---
+
+
+```{r}
+#| message: false
+#| warning: false
+#| include: false
 library(tidyverse)
 library(usethis)
 library(lmodel2)
@@ -10,10 +21,15 @@ library(manipulate)
 library(patchwork)
 library(infer)
 library(naniar)
+library(MuMIn)
+```
+```{r}
 f <- "https://raw.githubusercontent.com/difiore/ada-datasets/main/Mammal_lifehistories_v2.txt"
 d <- read_tsv(f)
 skim(d)
-##Order, family, genus, and species are categorical variables while mass, gestation time, newborn weight, weaning time, wean mass, AFR, max lifespan, litter size, litters per year, and refs are all numerical variables.
+```
+Order, family, genus, and species are categorical variables while mass, gestation time, newborn weight, weaning time, wean mass, AFR, max lifespan, litter size, litters per year, and refs are all numerical variables.
+```{r}
 d <- replace_with_na_all(d,condition = ~.x == -999)
 d$`litter size` <- NULL
 d$refs <- NULL
@@ -35,17 +51,24 @@ rellife_plot <- ggplot(data = d, aes(x = order, y = rellife)) +
   geom_boxplot(na.rm = TRUE) +
   geom_jitter(na.rm = TRUE, alpha = 0.1)
 plot(rellife_plot)
-##Primates have the highest residual lifespan
+```
+
+Primates have the highest residual lifespan
+```{r}
 relnewborn_plot <- ggplot(data = d, aes(x = order, y = relnewbornmass)) +
   geom_boxplot(na.rm = TRUE) +
   geom_jitter(na.rm = TRUE, alpha = 0.1)
 plot(relnewborn_plot)
-##Cetacea and Macroscelidae have the highest average residual body mass at birth
+```
+Cetacea and Macroscelidae have the highest average residual body mass at birth
+```{r}
 relweanmass_plot <- ggplot(data = d, aes(x = order, y = relweanmass)) +
   geom_boxplot(na.rm = TRUE) +
   geom_jitter(na.rm = TRUE, alpha = 0.1)
 plot(relweanmass_plot)
-##Perissodactyla have the highest residual body mass at weaning
+```
+Perissodactyla have the highest residual body mass at weaning
+```{r}
 d1 <- drop_na(d)
 lm_life <- lm(data = d1, log_maxlife ~ log_gestation + log_newborn + log_weaning + log_weanmass + log_littersperyr + log_mass, na.action = "na.fail")
 summary(lm_life)
@@ -55,11 +78,17 @@ life_dredge <- dredge(lm_life)
 head(coef(life_dredge), 10)
 life_dredge_summ <- summary(model.avg(life_dredge, subset = delta < 4))
 print(life_dredge_summ)
-##Based on dredging the best overall model based on AICc is lifespan as a response to gestation, littersperyear, mass, and age of weaning. There were five models identified with delta AICc values less than 4. Gestation and litters per year appear in all these five models.
+```
+Based on dredging the best overall model based on AICc is lifespan as a response to gestation, littersperyear, mass, and age of weaning. There were five models identified with delta AICc values less than 4. Gestation and litters per year appear in all these five models.
+```{r}
 plot(life_dredge_summ, full = TRUE, intercept = FALSE)
 AFR_dredge <- dredge(lm_AFR)
 head(coef(AFR_dredge), 10)
 AFR_dredge_summ <- summary(model.avg(AFR_dredge, subset = delta < 4))
 print(AFR_dredge_summ)
-##Based on dredging the best overall model based on AICc is AFR as a response to gestation, littersperyear, mass, and age of weaning. In total there were 10 models identified with delta AICc values less than 4. In all 10 of these models gestational time and litters per year were present.
+```
+Based on dredging the best overall model based on AICc is AFR as a response to gestation, littersperyear, mass, and age of weaning. In total there were 10 models identified with delta AICc values less than 4. In all 10 of these models gestational time and litters per year were present.
+```{r}
 plot(AFR_dredge_summ, full = TRUE, intercept = FALSE)
+
+```
